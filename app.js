@@ -27,14 +27,17 @@ app.use(morgan('tiny'));
 // we want to access maltiple data in req.body and also use patch and post request
 // Since we wanna access them so we use express inbulid middleware
 app.use(express.json());
-app.use(cookieParser());
+
+// For sign we have to pass and for access signed cookie we have to console req.signedCookies
+app.use(cookieParser(process.env.JWT_SECRET));
 
 app.get('/' , ( req, res ) => {
     res.send('Ecommerce-API');
 });
 
 app.get('/api/v1' , ( req, res ) => {
-    console.log(req.cookies);
+    // console.log(req.cookies);
+    console.log(req.signedCookies);
     res.send('Ecommerce-API');
 });
 
