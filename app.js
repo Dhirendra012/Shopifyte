@@ -12,6 +12,7 @@ const app = express();
 // This is a very useful package to know for which route you are heading
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const fileUpload = require('express-fileupload');
 
 // database
 const connetDB = require('./db/connect');
@@ -19,6 +20,7 @@ const connetDB = require('./db/connect');
 // routers
 const authRouter = require('./routes/authRoutes');
 const userRouter = require('./routes/userRoutes');
+const productRouter = require('./routes/productRoutes');
 
 // Middleware
 const notFoundMiddleware = require('./middleware/not-found');
@@ -32,6 +34,10 @@ app.use(express.json());
 // For sign we have to pass and for access signed cookie we have to console req.signedCookies
 app.use(cookieParser(process.env.JWT_SECRET));
 
+// This will put this static file on the server and any route can use it
+app.use(express.static('./public'));
+app.use(fileUpload());
+
 app.get('/' , ( req, res ) => {
     res.send('Ecommerce-API');
 });
@@ -44,6 +50,7 @@ app.get('/api/v1' , ( req, res ) => {
 
 app.use('/api/v1/auth' , authRouter);
 app.use('/api/v1/users' , userRouter);
+app.use('/api/v1/products', productRouter);
 
 // Why we put 404 before errorHandler
 // Its because express check for all the routes and if that does not exist it will simply show does not exist
