@@ -30,7 +30,17 @@ const createReview = async (req,res) => {
 }
 
 const getAllReviews = async (req,res) => {
-    const reviews = await Review.find({});
+    // Populate method help in reference documents in other collections
+    const reviews = await Review.find({})
+        .populate({
+            path: 'product',
+            select: 'name company price'
+        });
+        // .populate({
+        //     path: 'user',
+        //     select: 'name',
+        // })
+
     res.status(StatusCodes.OK).json({ reviews , count: reviews.length });
 }
 
