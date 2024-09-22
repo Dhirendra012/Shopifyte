@@ -73,4 +73,12 @@ ProductSchema.virtual('reviews', {
     justOne: false
 });
 
+// In deleteProduct controller we have uses Remove because it
+// Trigers this pre method and if we have used delete then that will 
+// not trigger this 
+
+ProductSchema.pre('remove', async function name(next) {
+    await this.model('Review').deleteMany({ product: this._id });
+});
+
 module.exports = mongoose.model('Product',ProductSchema);
