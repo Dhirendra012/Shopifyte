@@ -32,4 +32,44 @@ const ReviewSchema = new mongoose.Schema({
 // This is done for one person only give one review to one product
 ReviewSchema.index({product: 1 , user: 1}, { unique: true });
 
+// Aggregation
+ReviewSchema.statics.calculateAverageRating = async function (productId){
+    const result = await this.aggregate(
+        [
+            { $match: { product: productId } },
+            {
+                $group: {
+                    _id: null,
+                    averageRating: { $avg: '$rating' },
+                    numOfReviews: { $sum: 1 },
+                }
+            },
+        ],
+    );
+
+    console.log(result);
+
+    try
+    {
+        await this.model('Product').findOneAndUpdate(
+            { _id: productId },
+            {
+                averageRating: Math.ceil(result[0]?.averageRating || 0),
+                numOfReviews: result[0]?.numOfReviews || 0,
+            }
+        )
+    } 
+    catch (error) {
+        console.log(error);
+    }
+}
+
+ReviewSchema.post('save', async function(){
+    await this.constructor.calculateAverageRating(this.product);
+});
+
+ReviewSchema.post('remove', async function(){
+    await this.constructor.calculateAverageRating(this.product);
+});
+
 module.exports = mongoose.model( 'Review' , ReviewSchema );
