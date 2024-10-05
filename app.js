@@ -14,6 +14,12 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const fileUpload = require('express-fileupload');
 
+const rateLimiter = require('express-rate-limit');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const cors = require('cors');
+const mongoSanitize = require('express-mongo-sanitize')
+
 // database
 const connetDB = require('./db/connect');
 
@@ -28,6 +34,20 @@ const orderRouter = require('./routes/orderRoutes');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
+app.set('trust proxy', 1);
+app.use(
+    rateLimiter({
+        windowMs: 15 * 60 * 1000,
+        max: 60,
+    })
+);
+
+app.use(helmet());
+app.use(cors());
+app.use(xss());
+app.use(mongoSanitize());
+
+
 app.use(morgan('tiny'));
 // we want to access maltiple data in req.body and also use patch and post request
 // Since we wanna access them so we use express inbulid middleware
@@ -39,16 +59,6 @@ app.use(cookieParser(process.env.JWT_SECRET));
 // This will put this static file on the server and any route can use it
 app.use(express.static('./public'));
 app.use(fileUpload());
-
-app.get('/' , ( req, res ) => {
-    res.send('Ecommerce-API');
-});
-
-app.get('/api/v1' , ( req, res ) => {
-    // console.log(req.cookies);
-    console.log(req.signedCookies);
-    res.send('Ecommerce-API');
-});
 
 app.use('/api/v1/auth' , authRouter);
 app.use('/api/v1/users' , userRouter);
